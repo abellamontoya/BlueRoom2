@@ -1,3 +1,4 @@
+// FavouritesFragment.java
 package com.example.blueroom;
 
 import android.content.Context;
@@ -90,9 +91,13 @@ public class FavouritesFragment extends Fragment {
             intent.putExtra("productId", product.getName()); // Assuming product ID is stored in the name field
             startActivity(intent);
         }, cartProductIds, product -> {
+            MyApp myApp = (MyApp) requireActivity().getApplication();
+            myApp.addProductToCart(product);
+
             SharedPreferences.Editor editor = cartPreferences.edit();
             editor.putBoolean(product.getName(), true);
             editor.apply();
+
             Toast.makeText(requireContext(), product.getName() + " added to cart", Toast.LENGTH_SHORT).show();
             loadFavorites(); // Refresh the adapter to show the updated cart status
         });

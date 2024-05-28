@@ -1,12 +1,10 @@
+// FavProductAdapter.java
 package com.example.blueroom;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,80 +17,70 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
 import java.util.List;
 
-public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavProductAdapter.FavProductViewHolder> {
+public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavProductAdapter.ProductViewHolder> {
 
-    private OnFavProductClickListener favProductClickListener;
-    private OnAddToCartClickListener addToCartClickListener;
-    private List<String> cartProductIds;
+    private final OnProductClickListener clickListener;
+    private final List<String> cartProductIds;
+    private final OnAddToCartClickListener addToCartClickListener;
 
-    public FavProductAdapter(@NonNull FirestoreRecyclerOptions<products> options, OnFavProductClickListener favProductClickListener, List<String> cartProductIds, OnAddToCartClickListener addToCartClickListener) {
+    public interface OnProductClickListener {
+        void onProductClick(products product);
+    }
+
+    public interface OnAddToCartClickListener {
+        void onAddToCartClick(products product);
+    }
+
+    public FavProductAdapter(@NonNull FirestoreRecyclerOptions<products> options, OnProductClickListener clickListener, List<String> cartProductIds, OnAddToCartClickListener addToCartClickListener) {
         super(options);
-        this.favProductClickListener = favProductClickListener;
+        this.clickListener = clickListener;
         this.cartProductIds = cartProductIds;
         this.addToCartClickListener = addToCartClickListener;
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull FavProductViewHolder holder, int position, @NonNull products model) {
-        holder.bind(model, favProductClickListener, cartProductIds, addToCartClickListener);
+    protected void onBindViewHolder(@NonNull ProductViewHolder holder, int position, @NonNull products model) {
+        holder.name.setText(model.getName());
+        holder.author.setText(model.getAuthor());
+        holder.price.setText(String.format("%.2f", model.getPrice()));
+
+        Glide.with(holder.itemView.getContext()).load(model.getImageurl()).into(holder.image);
+
+        holder.itemView.setOnClickListener(v -> clickListener.onProductClick(model));
+
+        if (cartProductIds.contains(model.getName())) {
+            holder.check.setVisibility(View.VISIBLE);
+        } else {
+            holder.check.setVisibility(View.GONE);
+        }
+
+        holder.addToCartButton.setOnClickListener(v -> addToCartClickListener.onAddToCartClick(model));
+
     }
 
     @NonNull
     @Override
-    public FavProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.fav_recycler, parent, false);
-        return new FavProductViewHolder(view);
+        return new ProductViewHolder(view);
+    }
+    public interface OnRemoveFromFavoritesClickListener {
+        void onRemoveFromFavoritesClick(products product);
     }
 
-    static class FavProductViewHolder extends RecyclerView.ViewHolder {
-        ImageButton imageurl;
-        TextView nameTextView;
-        TextView authorTextView;
-        TextView priceTextView;
-        ImageView checkImageView;
+    static class ProductViewHolder extends RecyclerView.ViewHolder {
+        TextView name, author, price;
+        ImageView image, check;
         Button addToCartButton;
 
-        public FavProductViewHolder(@NonNull View itemView) {
+        public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageurl = itemView.findViewById(R.id.imageurl);
-            nameTextView = itemView.findViewById(R.id.name);
-            authorTextView = itemView.findViewById(R.id.author);
-            priceTextView = itemView.findViewById(R.id.price);
-            checkImageView = itemView.findViewById(R.id.check);
+            name = itemView.findViewById(R.id.name);
+            author = itemView.findViewById(R.id.author);
+            price = itemView.findViewById(R.id.price);
+            image = itemView.findViewById(R.id.imageurl);
+            check = itemView.findViewById(R.id.check);
             addToCartButton = itemView.findViewById(R.id.addToCartButton);
         }
-
-        public void bind(products product, OnFavProductClickListener favProductClickListener, List<String> cartProductIds, OnAddToCartClickListener addToCartClickListener) {
-            Glide.with(itemView.getContext()).load(product.getImageurl()).into(imageurl);
-            itemView.setOnClickListener(v -> {
-                if (favProductClickListener != null) {
-                    favProductClickListener.onFavProductClick(product);
-                }
-            });
-
-            nameTextView.setText(product.getName());
-            authorTextView.setText(product.getAuthor());
-            priceTextView.setText(String.valueOf(product.getPrice()));
-
-            if (cartProductIds.contains(product.getName())) {
-                checkImageView.setVisibility(View.VISIBLE);
-            } else {
-                checkImageView.setVisibility(View.GONE);
-            }
-
-            addToCartButton.setOnClickListener(v -> {
-                if (addToCartClickListener != null) {
-                    addToCartClickListener.onAddToCartClick(product);
-                }
-            });
-        }
-    }
-
-    public interface OnFavProductClickListener {
-        void onFavProductClick(products product);
-    }
-
-    public interface OnAddToCartClickListener {
-        void onAddToCartClick(products product);
     }
 }

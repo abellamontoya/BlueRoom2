@@ -1,3 +1,5 @@
+import java.util.regex.Pattern.compile
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
@@ -33,10 +35,19 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    packagingOptions {
+        exclude ("META-INF/DEPENDENCIES")
+        exclude ("META-INF/LICENSE")
+        exclude ("META-INF/LICENSE.txt")
+        exclude ("META-INF/license.txt")
+        exclude ("META-INF/NOTICE")
+        exclude ("META-INF/NOTICE.txt")
+        exclude ("META-INF/notice.txt")
+    }
 }
 
 dependencies {
-
     implementation("androidx.appcompat:appcompat:1.3.0")
     implementation("com.google.android.material:material:1.5.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
@@ -54,10 +65,11 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
     implementation("com.firebaseui:firebase-ui-storage:8.0.2")
-    implementation ("com.google.firebase:firebase-bom:32.7.4")
+    implementation("com.google.firebase:firebase-bom:32.7.4")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-    implementation ("com.google.android.exoplayer:exoplayer:2.16.1")
-
+    implementation("com.google.android.exoplayer:exoplayer:2.16.1")
+    implementation("com.sendgrid:sendgrid-java:4.7.0")
+    compile ("com.sendgrid:sendgrid-java:4.10.1")
 }

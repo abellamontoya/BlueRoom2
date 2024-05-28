@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,14 +105,14 @@ public class BuyFragment extends Fragment {
     private void savePurchaseData() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            String userEmail = user.getEmail();
+            String userUid = user.getUid();
             List<String> productNames = new ArrayList<>();
             for (products product : productsPurchased) {
                 productNames.add(product.getName()); // Assuming you have a getName() method in your Product class
             }
 
             Map<String, Object> purchaseData = new HashMap<>();
-            purchaseData.put("mail", userEmail);
+            purchaseData.put("userUid", userUid);
             purchaseData.put("purchase", productNames);
             purchaseData.put("totalSpent", totalPriceFromCart);
             purchaseData.put("timestamp", FieldValue.serverTimestamp());
@@ -122,6 +123,16 @@ public class BuyFragment extends Fragment {
                         MyApp myApp = (MyApp) requireActivity().getApplication();
                         myApp.clearCart();
                         Toast.makeText(getContext(), "Purchase saved successfully", Toast.LENGTH_SHORT).show();
+                        if (user != null) {
+                            String userEmail = user.getEmail();
+                            String subject = "Order Confirmation";
+                            String messageContent = "Thank you for your purchase!";
+                            SendGridHelper.sendEmail(userEmail, subject, messageContent);
+
+                            Toast.makeText(getContext(), "Confirmation email sent", Toast.LENGTH_SHORT).show();
+                        }
+                        // Send confirmation email after successful save
+                        sendConfirmationEmail(user.getEmail()); // <-- Add this line
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Error saving purchase", Toast.LENGTH_SHORT).show();
@@ -129,6 +140,16 @@ public class BuyFragment extends Fragment {
         } else {
             Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void sendConfirmationEmail(String userEmail) {
+        String subject = "Order Confirmation";
+        String message = "Thank you for your purchase!\n\n" +
+                "Your order details:\n" +
+                String.join("\n", productsPurchased.stream().map(products::getName).toArray(String[]::new)) +
+                "\n\nTotal: " + String.format(Locale.getDefault(), "%.2f€", totalPriceFromCart);
+
+        SendGridHelper.sendEmail(userEmail, subject, message);
     }
 
     // Helper method to check if all fields are filled
@@ -151,9 +172,9 @@ public class BuyFragment extends Fragment {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String userEmail = user.getEmail();
+            String userUid = user.getUid();
 
-            DocumentReference userDocRef = db.collection("users").document(userEmail);
+            DocumentReference userDocRef = db.collection("users").document(userUid);
 
             userDocRef.get().addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
@@ -164,12 +185,17 @@ public class BuyFragment extends Fragment {
                     countryEditText.setText(country);
                     addressEditText.setText(address);
                     postalCodeEditText.setText(postalCode);
+                } else {
+                    Log.d("BuyFragment", "No such document");
                 }
             }).addOnFailureListener(e -> {
                 Toast.makeText(getContext(), "Failed to load profile data", Toast.LENGTH_SHORT).show();
             });
+        } else {
+            Log.e("BuyFragment", "User is null. Profile data cannot be loaded.");
         }
     }
+
 
     private double calculateFinalPrice(double totalPrice) {
         // Add a fixed shipping fee or any other additional costs

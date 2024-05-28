@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "546928908768",
+    "project_id": "blue-room-f7b24",
+    "storage_bucket": "blue-room-f7b24.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546928908768:android:c84c086ef87f79195b7385",
+        "android_client_info": {
+          "package_name": "com.example.blueroom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "546928908768-kgkak8ka7m1sf84ev9r9je810v4a9uol.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.blueroom",
+            "certificate_hash": "3efdfcd2a4704e3dc02a9d7483b457ade64a22da"
+          }
+        },
+        {
+          "client_id": "546928908768-pjnr2bh699j20isn6kppsgu0jnp1o82k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBICL1xOGUjld7zyzt9DvxsfPPvLsFGfMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "546928908768-pjnr2bh699j20isn6kppsgu0jnp1o82k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -88,12 +88,7 @@
                         android:textSize="16sp"
                         android:textColor="@color/black"
                         android:textStyle="bold" />
-                    <ImageView
-                        android:id="@+id/check"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:src="@drawable/baseline_check_24" />
+
                 </LinearLayout>
 
                 <Button

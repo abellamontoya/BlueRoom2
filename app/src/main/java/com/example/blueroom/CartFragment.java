@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,6 +29,7 @@ public class CartFragment extends Fragment {
     private RecyclerView recyclerView;
     private CartAdapter adapter;
     private Button buyButton;
+
 
     public CartFragment() {
     }
@@ -91,7 +93,7 @@ public class CartFragment extends Fragment {
 
         TextView name, author, price, quantity;
         ImageView imageurl;
-        ImageButton deleteButton;
+        ImageButton deleteButton, incrementButton, decrementButton;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -101,6 +103,8 @@ public class CartFragment extends Fragment {
             imageurl = itemView.findViewById(R.id.albumcover);
             quantity = itemView.findViewById(R.id.quantity);
             deleteButton = itemView.findViewById(R.id.deleteitem);
+            incrementButton = itemView.findViewById(R.id.increment);
+            decrementButton = itemView.findViewById(R.id.decrement);
         }
 
         public void bind(products product, CartAdapter adapter) {
@@ -117,8 +121,30 @@ public class CartFragment extends Fragment {
                     adapter.removeItem(position);
                 }
             });
+
+            incrementButton.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && product.getQuantity() < 10) { // Límite máximo de cantidad
+                    product.setQuantity(product.getQuantity() + 1);
+                    adapter.updateItem(position, product); // Actualizar el elemento en el adaptador
+                } else {
+                    Toast.makeText(v.getContext(), "Maximum quantity reached", Toast.LENGTH_SHORT).show(); // Mensaje de límite
+                }
+            });
+
+            decrementButton.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && product.getQuantity() > 1) { // Límite mínimo de cantidad (1)
+                    product.setQuantity(product.getQuantity() - 1);
+                    adapter.updateItem(position, product); // Actualizar el elemento en el adaptador
+                }
+            });
+
+            // Ocultar el botón de decremento si la cantidad es 1
+            decrementButton.setVisibility(product.getQuantity() > 1 ? View.VISIBLE : View.GONE);
         }
     }
+
 
     class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
 
@@ -147,6 +173,12 @@ public class CartFragment extends Fragment {
             cartProducts.add(product);
             Log.d(TAG, "Product added to cart with quantity: " + product.getQuantity()); // Log new addition
             notifyItemInserted(cartProducts.size() - 1);
+            updateBuyButton();
+        }
+
+        public void updateItem(int position, products updatedProduct) {
+            cartProducts.set(position, updatedProduct);
+            notifyItemChanged(position);
             updateBuyButton();
         }
 

@@ -1,10 +1,10 @@
-// FavProductAdapter.java
 package com.example.blueroom;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,6 +22,7 @@ public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavPro
     private final OnProductClickListener clickListener;
     private final List<String> cartProductIds;
     private final OnAddToCartClickListener addToCartClickListener;
+    private final OnRemoveFromFavoritesClickListener removeFromFavoritesClickListener;
 
     public interface OnProductClickListener {
         void onProductClick(products product);
@@ -31,11 +32,16 @@ public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavPro
         void onAddToCartClick(products product);
     }
 
-    public FavProductAdapter(@NonNull FirestoreRecyclerOptions<products> options, OnProductClickListener clickListener, List<String> cartProductIds, OnAddToCartClickListener addToCartClickListener) {
+    public interface OnRemoveFromFavoritesClickListener {
+        void onRemoveFromFavoritesClick(products product);
+    }
+
+    public FavProductAdapter(@NonNull FirestoreRecyclerOptions<products> options, OnProductClickListener clickListener, List<String> cartProductIds, OnAddToCartClickListener addToCartClickListener, OnRemoveFromFavoritesClickListener removeFromFavoritesClickListener) {
         super(options);
         this.clickListener = clickListener;
         this.cartProductIds = cartProductIds;
         this.addToCartClickListener = addToCartClickListener;
+        this.removeFromFavoritesClickListener = removeFromFavoritesClickListener;
     }
 
     @Override
@@ -48,14 +54,9 @@ public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavPro
 
         holder.itemView.setOnClickListener(v -> clickListener.onProductClick(model));
 
-        if (cartProductIds.contains(model.getName())) {
-            holder.check.setVisibility(View.VISIBLE);
-        } else {
-            holder.check.setVisibility(View.GONE);
-        }
-
         holder.addToCartButton.setOnClickListener(v -> addToCartClickListener.onAddToCartClick(model));
 
+        holder.removeFromFavoritesButton.setOnClickListener(v -> removeFromFavoritesClickListener.onRemoveFromFavoritesClick(model));
     }
 
     @NonNull
@@ -64,14 +65,12 @@ public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavPro
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.fav_recycler, parent, false);
         return new ProductViewHolder(view);
     }
-    public interface OnRemoveFromFavoritesClickListener {
-        void onRemoveFromFavoritesClick(products product);
-    }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
         TextView name, author, price;
-        ImageView image, check;
+        ImageView image;
         Button addToCartButton;
+        ImageButton removeFromFavoritesButton;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,8 +78,8 @@ public class FavProductAdapter extends FirestoreRecyclerAdapter<products, FavPro
             author = itemView.findViewById(R.id.author);
             price = itemView.findViewById(R.id.price);
             image = itemView.findViewById(R.id.imageurl);
-            check = itemView.findViewById(R.id.check);
             addToCartButton = itemView.findViewById(R.id.addToCartButton);
+            removeFromFavoritesButton = itemView.findViewById(R.id.removeFromFavoritesButton);
         }
     }
 }

@@ -1,4 +1,3 @@
-// FavouritesFragment.java
 package com.example.blueroom;
 
 import android.content.Context;
@@ -87,9 +86,10 @@ public class FavouritesFragment extends Fragment {
                 .build();
 
         adapter = new FavProductAdapter(options, product -> {
-            Intent intent = new Intent(requireContext(), ShowProduct.class);
-            intent.putExtra("productId", product.getName()); // Assuming product ID is stored in the name field
-            startActivity(intent);
+            // Navegar al fragmento ShowProduct
+            Bundle bundle = new Bundle();
+            bundle.putString("name", product.getName());
+            getParentFragmentManager().setFragmentResult("show_product", bundle);
         }, cartProductIds, product -> {
             MyApp myApp = (MyApp) requireActivity().getApplication();
             myApp.addProductToCart(product);
@@ -100,7 +100,15 @@ public class FavouritesFragment extends Fragment {
 
             Toast.makeText(requireContext(), product.getName() + " added to cart", Toast.LENGTH_SHORT).show();
             loadFavorites(); // Refresh the adapter to show the updated cart status
+        }, product -> {
+            SharedPreferences.Editor editor = favoritesPreferences.edit();
+            editor.remove(product.getName());
+            editor.apply();
+
+            Toast.makeText(requireContext(), product.getName() + " removed from favorites", Toast.LENGTH_SHORT).show();
+            loadFavorites(); // Refresh the adapter to remove the item
         });
+
 
         recyclerView.setAdapter(adapter);
     }

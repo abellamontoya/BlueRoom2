@@ -48,7 +48,7 @@ public class ShowProduct extends Fragment {
     private int date;
     private String type;
     private ArrayList<String> tag;
-    private String audioUrl;  // Nueva variable para el URL del audio
+    private String audioUrl;
     SharedPreferences favoritesPreferences;
 
     private NavController navController;
@@ -69,12 +69,11 @@ public class ShowProduct extends Fragment {
             imageUrl = getArguments().getString("imageurl", "");
             name = getArguments().getString("name", "");
             price = getArguments().getFloat("price", 0);
-            date = getArguments().getInt("date", 0); // Obtener el valor de date aquí
+            date = getArguments().getInt("date", 0);
             type = getArguments().getString("type", "");
             tag = getArguments().getStringArrayList("tag");
-            audioUrl = getArguments().getString("musicurl", ""); // Obtener el valor del audio URL aquí
+            audioUrl = getArguments().getString("musicurl", "");
             Log.d(TAG, "Music URL: " + audioUrl);
-
         }
 
         MyApp myApp = (MyApp) requireActivity().getApplication();
@@ -119,7 +118,6 @@ public class ShowProduct extends Fragment {
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         try {
-            // Crear una Uri a partir del enlace de Firebase
             Uri audioUri = Uri.parse(audioUrl);
             mediaPlayer.setDataSource(requireContext(), audioUri);
             mediaPlayer.prepareAsync();
@@ -127,37 +125,28 @@ public class ShowProduct extends Fragment {
             Log.e(TAG, "Error setting data source: " + e.getMessage());
         }
 
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                audioSeekBar.setMax(mediaPlayer.getDuration());
-                playPauseButton.setEnabled(true);
+        mediaPlayer.setOnPreparedListener(mp -> {
+            audioSeekBar.setMax(mediaPlayer.getDuration());
+            playPauseButton.setEnabled(true);
 
+            mediaPlayer.start();
+            playPauseButton.setImageResource(R.drawable.baseline_pause_24);
+            handler.post(updateSeekBar);
+        });
+
+        mediaPlayer.setOnCompletionListener(mp -> {
+            playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
+            audioSeekBar.setProgress(0);
+        });
+
+        playPauseButton.setOnClickListener(v -> {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
+            } else {
                 mediaPlayer.start();
                 playPauseButton.setImageResource(R.drawable.baseline_pause_24);
                 handler.post(updateSeekBar);
-            }
-        });
-
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
-                audioSeekBar.setProgress(0);
-            }
-        });
-
-        playPauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                    playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
-                } else {
-                    mediaPlayer.start();
-                    playPauseButton.setImageResource(R.drawable.baseline_pause_24);
-                    handler.post(updateSeekBar);
-                }
             }
         });
 

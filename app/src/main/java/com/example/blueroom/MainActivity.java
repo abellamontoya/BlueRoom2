@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDestinationChanged(@NonNull NavController controller,
                                              @NonNull NavDestination destination, @Nullable Bundle arguments) {
                 if (destination.getId() == R.id.signInFragment || destination.getId() == R.id.registerFragment
-                        || destination.getId() == R.id.showProduct || destination.getId() == R.id.buyFragment) {
+                        || destination.getId() == R.id.showProduct || destination.getId() == R.id.buyFragment || destination.getId() == R.id.favouritesFragment) {
                     binding.bottomNavView.setVisibility(View.GONE);
                 } else {
                     binding.bottomNavView.setVisibility(View.VISIBLE);

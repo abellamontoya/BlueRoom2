@@ -62,16 +62,12 @@ public class BuyFragment extends Fragment {
             totalPriceFromCart = getArguments().getDouble("totalPrice", 0.0);
         }
 
-        // Set the product price immediately
         setProductPrice();
 
-        // Load user profile data
         loadProfileData();
 
-        // Set up text change listener
         setUpTextChangeListener();
 
-        // Initially disable the confirm button
         confirmButton.setEnabled(false);
 
         // Set up OnClickListener for the confirmButton
@@ -105,15 +101,19 @@ public class BuyFragment extends Fragment {
     private void savePurchaseData() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            String userUid = user.getUid();
-            List<String> productNames = new ArrayList<>();
+            String userEmail = user.getEmail(); // Obtain the user's email
+
+            List<Map<String, Object>> productsData = new ArrayList<>();
             for (products product : productsPurchased) {
-                productNames.add(product.getName()); // Assuming you have a getName() method in your Product class
+                Map<String, Object> productData = new HashMap<>();
+                productData.put("name", product.getName());
+                productData.put("price", product.getPrice());
+                productsData.add(productData);
             }
 
             Map<String, Object> purchaseData = new HashMap<>();
-            purchaseData.put("userUid", userUid);
-            purchaseData.put("purchase", productNames);
+            purchaseData.put("userEmail", userEmail);
+            purchaseData.put("products", productsData);
             purchaseData.put("totalSpent", totalPriceFromCart);
             purchaseData.put("timestamp", FieldValue.serverTimestamp());
 
@@ -124,15 +124,8 @@ public class BuyFragment extends Fragment {
                         myApp.clearCart();
                         Toast.makeText(getContext(), "Purchase saved successfully", Toast.LENGTH_SHORT).show();
                         if (user != null) {
-                            String userEmail = user.getEmail();
-                            String subject = "Order Confirmation";
-                            String messageContent = "Thank you for your purchase!";
-                            SendGridHelper.sendEmail(userEmail, subject, messageContent);
-
-                            Toast.makeText(getContext(), "Confirmation email sent", Toast.LENGTH_SHORT).show();
+                            sendConfirmationEmail(user.getEmail());
                         }
-                        // Send confirmation email after successful save
-                        sendConfirmationEmail(user.getEmail()); // <-- Add this line
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Error saving purchase", Toast.LENGTH_SHORT).show();
@@ -141,6 +134,8 @@ public class BuyFragment extends Fragment {
             Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     private void sendConfirmationEmail(String userEmail) {
         String subject = "Order Confirmation";
@@ -152,7 +147,6 @@ public class BuyFragment extends Fragment {
         SendGridHelper.sendEmail(userEmail, subject, message);
     }
 
-    // Helper method to check if all fields are filled
     private boolean areAllFieldsFilled() {
         return !countryEditText.getText().toString().trim().isEmpty() &&
                 !addressEditText.getText().toString().trim().isEmpty() &&

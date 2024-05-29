@@ -13,8 +13,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,7 +38,7 @@ public class profileFragment extends Fragment {
     private EditText textoEditable;
 
     private Button editButton;
-    private ImageButton editImageButton;
+    private ImageButton dehaze_button;
 
     private SharedPreferences sharedPreferences;
     private static final String SHARED_PREFS = "sharedPrefs";
@@ -72,6 +74,31 @@ public class profileFragment extends Fragment {
         textoEditable = view.findViewById(R.id.texto_editable);
 
         editButton = view.findViewById(R.id.edit);
+        ImageButton menuImageButton = view.findViewById(R.id.dehaze_button);
+
+        menuImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+                popupMenu.getMenuInflater().inflate(R.menu.profile_menu, popupMenu.getMenu());
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    int itemId = item.getItemId(); // Store the item ID
+                    if (itemId == R.id.action_shopping_history) {
+                        // Navigate to shopping history
+                        Navigation.findNavController(getView()).navigate(R.id.historyFragment);
+                        return true;
+                    } else if (itemId == R.id.action_logout) {
+                        // Perform logout
+                        FirebaseAuth.getInstance().signOut();
+                        Navigation.findNavController(getView()).navigate(R.id.signInFragment);
+                        return true;
+                    }
+                    return false;
+                });
+                popupMenu.show();
+            }
+        });
+
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +127,7 @@ public class profileFragment extends Fragment {
             saveData();
         }
     }
+
 
     private void setFieldsEditable(boolean editable) {
         countryEditText.setEnabled(editable);

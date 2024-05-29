@@ -1,6 +1,8 @@
 package com.example.blueroom;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -64,9 +67,8 @@ public class FavouritesFragment extends Fragment {
             }
         }
         if (favoriteIds.isEmpty()) {
-            TextView emptyMessageTextView = requireView().findViewById(R.id.empty_message);
-            emptyMessageTextView.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
+            // Show popup menu instead of text message
+            showEmptyFavoritesDialog();
             return;
         }
 
@@ -112,6 +114,20 @@ public class FavouritesFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
     }
+    private void showEmptyFavoritesDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Your wishlist is empty")
+                .setMessage("You don't have any items in your wishlist yet.")
+                .setPositiveButton("Go to Home", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Navigate to home fragment
+                        Navigation.findNavController(getView()).navigate(R.id.homeFragment);
+                    }
+                })
+                .show();
+    }
+
 
     @Override
     public void onStart() {

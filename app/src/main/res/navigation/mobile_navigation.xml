@@ -60,4 +60,9 @@
         android:name="com.example.blueroom.FavouritesFragment"
         android:label="fragment_favourites"
         tools:layout="@layout/fragment_favourites" />
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.blueroom.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" />
 </navigation>

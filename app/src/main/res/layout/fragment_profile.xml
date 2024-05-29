@@ -9,18 +9,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/clear_blue"
-        android:orientation="vertical"
-        android:padding="21dp"
+        android:orientation="horizontal"
+        android:padding="18dp"
+        android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="The Blue Room"
             android:fontFamily="@font/font"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/dehaze_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_dehaze_24"
+            android:backgroundTint="@color/clear_blue"
+            android:adjustViewBounds="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/vert" />
     </LinearLayout>
 
 

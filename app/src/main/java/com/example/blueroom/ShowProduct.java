@@ -3,11 +3,7 @@ package com.example.blueroom;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,10 +23,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.exoplayer2.Player;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.ui.PlayerControlView;
 
-import java.io.IOException;
+
 import java.util.ArrayList;
 
 public class ShowProduct extends Fragment {
@@ -52,9 +51,8 @@ public class ShowProduct extends Fragment {
     SharedPreferences favoritesPreferences;
 
     private NavController navController;
-    private MediaPlayer mediaPlayer;
-    private Handler handler = new Handler();
-    private Runnable updateSeekBar;
+    private ExoPlayer exoPlayer;
+    private PlayerControlView playerControlView;
 
     public ShowProduct() {
         // Required empty public constructor
@@ -91,8 +89,6 @@ public class ShowProduct extends Fragment {
         TextView typeTextView = view.findViewById(R.id.type);
         TextView tagTextView = view.findViewById(R.id.tag);
         TextView dateTextView = view.findViewById(R.id.date);
-        SeekBar audioSeekBar = view.findViewById(R.id.audioSeekBar);
-        ImageButton playPauseButton = view.findViewById(R.id.play_pause_button);
 
         authorTextView.setText(author);
         nameTextView.setText(name);
@@ -113,56 +109,21 @@ public class ShowProduct extends Fragment {
 
         Glide.with(requireContext()).load(imageUrl).into(imageView);
 
-        // Configurar el MediaPlayer
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        // Configurar ExoPlayer
+        exoPlayer = new ExoPlayer.Builder(requireContext()).build();
+        playerControlView = view.findViewById(R.id.exo_player_view);
+        playerControlView.setPlayer(exoPlayer);
+        MediaItem mediaItem = MediaItem.fromUri(audioUrl);
+        exoPlayer.setMediaItem(mediaItem);
+        exoPlayer.prepare();
 
-        try {
-            Uri audioUri = Uri.parse(audioUrl);
-            mediaPlayer.setDataSource(requireContext(), audioUri);
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            Log.e(TAG, "Error setting data source: " + e.getMessage());
-        }
-
-        mediaPlayer.setOnPreparedListener(mp -> {
-            audioSeekBar.setMax(mediaPlayer.getDuration());
-            playPauseButton.setEnabled(true);
-
-            mediaPlayer.start();
-            playPauseButton.setImageResource(R.drawable.baseline_pause_24);
-            handler.post(updateSeekBar);
-        });
-
-        mediaPlayer.setOnCompletionListener(mp -> {
-            playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
-            audioSeekBar.setProgress(0);
-        });
-
-        playPauseButton.setOnClickListener(v -> {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.pause();
-                playPauseButton.setImageResource(R.drawable.baseline_play_arrow_24);
-            } else {
-                mediaPlayer.start();
-                playPauseButton.setImageResource(R.drawable.baseline_pause_24);
-                handler.post(updateSeekBar);
-            }
-        });
-
-        audioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        exoPlayer.addListener(new Player.Listener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    mediaPlayer.seekTo(progress);
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_ENDED) {
+                    // Acción cuando el audio termina
                 }
             }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         return view;
@@ -180,13 +141,14 @@ public class ShowProduct extends Fragment {
             MyApp myApp = (MyApp) requireActivity().getApplication();
             Log.d(TAG, "Adding product to cart: " + name);
             products newProduct = new products(imageUrl, name, author, price, quantity);
-            myApp.addProductToCart(newProduct);  // Usar la función para añadir producto
+            myApp.addProductToCart(newProduct);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setMessage("Producto añadido al carrito")
+            builder.setMessage("Product added to cart")
                     .setCancelable(false)
-                    .setPositiveButton("Ir al carrito", (dialog, id) -> openCartFragment())
-                    .setNegativeButton("Continuar comprando", (dialog, id) -> {});
+                    .setPositiveButton("Go to Cart", (dialog, id) -> openCartFragment())
+                    .setNegativeButton("Continue Shopping", (dialog, id) -> {
+                    });
             AlertDialog alert = builder.create();
             alert.show();
         });
@@ -233,8 +195,8 @@ public class ShowProduct extends Fragment {
             bundle.putString("imageurl", product.getImageurl());
             bundle.putString("name", product.getName());
             bundle.putFloat("price", product.getPrice());
-            bundle.putFloat("quantity", product.getQuantity()); // Corrected type to int
-            bundle.putInt("date", product.getDate()); // Asegúrate de incluir date aquí
+            bundle.putFloat("quantity", product.getQuantity());
+            bundle.putInt("date", product.getDate());
             bundle.putString("type", product.getType());
             bundle.putString("musicurl", product.getMusicurl());
             bundle.putStringArrayList("tag", new ArrayList<>(product.getTag()));
@@ -280,13 +242,9 @@ public class ShowProduct extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop(); // Stop the playback explicitly
-            }
-            mediaPlayer.release();
-            mediaPlayer = null;
+        if (exoPlayer != null) {
+            exoPlayer.release();
+            exoPlayer = null;
         }
-        handler.removeCallbacks(updateSeekBar);
     }
 }
